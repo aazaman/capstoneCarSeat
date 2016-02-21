@@ -58,4 +58,8 @@ public class ConnectionWizard extends AppCompatActivity {
             }
         }
     };
+
+    public void connection(){
+        //connection code goes here
+    }
 }

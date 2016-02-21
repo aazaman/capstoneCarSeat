@@ -80,8 +80,4 @@ public class MainActivity extends AppCompatActivity {
         Intent intent = new Intent(MainActivity.this, ConnectionWizard.class);
         startActivity(intent);
     }
-
-    public void connect(){
-        //connection code goes here
-    }
 }
