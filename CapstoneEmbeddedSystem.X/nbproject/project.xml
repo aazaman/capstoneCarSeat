@@ -4,11 +4,11 @@
     <configuration>
         <data xmlns="http://www.netbeans.org/ns/make-project/1">
             <name>CapstoneEmbeddedSystem</name>
-            <creation-uuid>ee34d0e8-c1f2-4a06-b431-80e26685a458</creation-uuid>
+            <creation-uuid>37e68546-8d22-4334-802a-557801a78568</creation-uuid>
             <make-project-type>0</make-project-type>
             <c-extensions>c</c-extensions>
             <cpp-extensions/>
-            <header-extensions/>
+            <header-extensions>h</header-extensions>
             <asminc-extensions/>
             <sourceEncoding>ISO-8859-1</sourceEncoding>
             <make-dep-projects/>
