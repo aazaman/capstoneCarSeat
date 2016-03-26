@@ -17,8 +17,10 @@ volatile unsigned char string[n];
 
 
 void main(void) {
+    
     set_pins_ExplorerBoard();
     set_Fosc();
+    UART_init();
     set_interrupts();
     
     //Variables
@@ -34,12 +36,11 @@ void main(void) {
         message = package(weight, car, temp);
         TRISD = message;
         
-        delay(1000);
-        
-        UART_init();
+        delay(500);
+ 
         UART_transmit();
         
-        delay(3000);
+        delay(500);
     }
     return;
 }

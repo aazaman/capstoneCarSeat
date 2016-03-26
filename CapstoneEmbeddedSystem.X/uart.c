@@ -19,7 +19,7 @@ void set_UARTtx(){
     TXSTA1bits.TXEN  = 1;  //Transmit is enabled;
     TXSTA1bits.SYNC  = 0;  //Asynchronous mode
     TXSTA1bits.SENDB = 0;  //Sync Break transmission has completed 
-    TXSTA1bits.BRGH  = 1;  //High Baud Rate
+    TXSTA1bits.BRGH  = 0;  //High Baud Rate
 }
 
 void set_UARTrx(){
@@ -42,11 +42,12 @@ void set_UARTBaudRate(){
     //Second per bit = 1/baudrate
     //SPBRG value is only a number that references the baudrate
     //it is calculated by the formula bellow
-    SPBRG = 25;
+    SPBRG1 = (char)25;
 }
      
 //Function to test transmission
 void UART_transmit(){
+    
     while(TXSTAbits.TRMT == 0);
     if(TRISDbits.RD2)
         TXREG = 0x31;
@@ -63,7 +64,9 @@ void UART_transmit(){
     else
         TXREG = 0x30;
     while(TXSTAbits.TRMT == 0);
+    
     TXREG = 0x0A;
+    while(TXSTAbits.TRMT == 0);
 }
 
 void USART_echo(unsigned char *s){
@@ -79,21 +82,20 @@ void interrupt ISR(){
     extern volatile unsigned char ptr;
     extern volatile unsigned char string[n];
 
-    int i;
-    
     if(PIR1bits.RC1IF){
+        int i;
         asciiValue = RCREG1;
-        
         if((asciiValue != 0x0A) &&(ptr < n)){
             string[ptr] = asciiValue;
             ptr++;
         }
         else{
-            USART_echo(string);
+            string[ptr] = 0x0A;
+            USART_echo((char*)string);
             for(i = 0; i < ptr; i++)
                 string[i] = 0x00;
             ptr = 0;
         }
-        PIR1bits.RCIF = 0; //Clear interrupt flag;
+        PIR1bits.RCIF = 0;
     }
 }

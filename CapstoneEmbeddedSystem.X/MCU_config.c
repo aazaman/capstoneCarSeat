@@ -2,7 +2,7 @@
 
 //Sets the Oscilator frequency for the MCU
 void set_Fosc(){
-    OSCCONbits.IRCF = 0x6; //INTOC frequency 4MHz
+    OSCCON = 0x6F; //INTSOC frequency 4MHz
 }
 
 //Input pins for recieving data from enviornment

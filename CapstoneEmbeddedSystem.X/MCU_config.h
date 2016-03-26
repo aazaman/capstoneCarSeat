@@ -14,7 +14,7 @@
 #pragma config CP0 = OFF         // Code Protection bit (Program memory is code-protected)
 
 // CONFIG2L
-#pragma config FOSC = HSPLL        // Oscillator Selection bits (HS oscillator)
+#pragma config FOSC = INTOSC   // Oscillator Selection bits (HS oscillator)
 #pragma config FCMEN = ON       // Fail-Safe Clock Monitor Enable bit (Fail-Safe Clock Monitor enabled)
 #pragma config IESO = ON        // Two-Speed Start-up (Internal/External Oscillator Switchover) Control bit (Two-Speed Start-up enabled)
 
