@@ -8,8 +8,6 @@ void set_UARTBaudConfig();
 
 void set_UARTBaudRate();
 
-void UART_transmit();
+void UART_transsmitBitmap();
 
-void USART_echo(unsigned char *s);
-
-void interrupt ISR();
+void UART_transsmit(unsigned char *s);

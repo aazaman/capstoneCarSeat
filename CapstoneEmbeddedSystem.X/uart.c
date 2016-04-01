@@ -46,7 +46,7 @@ void set_UARTBaudRate(){
 }
      
 //Function to test transmission
-void UART_transmit(){
+void UART_transsmitBitmap(){
     
     while(TXSTAbits.TRMT == 0);
     if(TRISDbits.RD2)
@@ -69,33 +69,10 @@ void UART_transmit(){
     while(TXSTAbits.TRMT == 0);
 }
 
-void USART_echo(unsigned char *s){
+void UART_transsmit(unsigned char *s){
     while(*s){
         while(TXSTAbits.TRMT == 0);
         TXREG = *s;
         s++;
-    }
-}
-
-void interrupt ISR(){
-    extern volatile unsigned char asciiValue;
-    extern volatile unsigned char ptr;
-    extern volatile unsigned char string[n];
-
-    if(PIR1bits.RC1IF){
-        int i;
-        asciiValue = RCREG1;
-        if((asciiValue != 0x0A) &&(ptr < n)){
-            string[ptr] = asciiValue;
-            ptr++;
-        }
-        else{
-            string[ptr] = 0x0A;
-            USART_echo((char*)string);
-            for(i = 0; i < ptr; i++)
-                string[i] = 0x00;
-            ptr = 0;
-        }
-        PIR1bits.RCIF = 0;
     }
 }

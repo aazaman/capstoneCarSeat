@@ -25,20 +25,24 @@ unsigned char getCarPower(){
 unsigned char getTemperature(){
     unsigned char L_byte; //grab ADRESL from A/D converter result
     unsigned char H_byte; //grab ADRESH from A/D converter result
-    
-    delay(100); //delay a few ms(polling)
+    unsigned char result; // temporary hold temperature
     
     ADCON0 |= 0x02; //ADCON.GODONE = 1;
     while(ADCON0bits.GO == 1); //Hold here until A/D conversion is done
+    
     L_byte = ADRESL; //get low byte result
     H_byte = ADRESH; //get high byte result
     L_byte = L_byte >> 2;//shift 6 MSB to 6 LSB
     H_byte = H_byte << 6;//shift 2 LSB to 2 MSB
     
-    delay(100);
+    result = H_byte | L_byte; //OR bits together
     
-    if((L_byte | H_byte) > desiredTemp) //Combine the two and check if result is greater
-        return 1;              //then 80 degrees. 1 = above 80
+    return result;
+}
+
+unsigned char checkTemp(unsigned char t){
+    if(t >= desiredTemp)
+        return 1;
     return 0;
 }
 
@@ -47,14 +51,6 @@ unsigned char accel(){
     return 0;
 }
 
-//Simple delay function
-void delay(unsigned int x){
-    unsigned int i;
-    unsigned int j;
-    for(i = 0; i < x; i++){
-        for(j = 0; j < 165; j++){}
-    }
-}
 //Function to package the environment of the car seat
 unsigned char package(unsigned char w, unsigned char c, unsigned char t){
     //0b00000tcw
@@ -66,4 +62,3 @@ unsigned char package(unsigned char w, unsigned char c, unsigned char t){
    
     return w | c | t;
 }
-

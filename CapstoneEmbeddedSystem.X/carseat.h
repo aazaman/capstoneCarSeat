@@ -14,11 +14,10 @@ unsigned char getCarPower();
 //Returns the temperature in decimal
 unsigned char getTemperature();
 
+unsigned char checkTemp(unsigned char);
+
 //Function to observe movement of the car seat
 unsigned char accel();
-
-//Poll Delay
-void delay(unsigned int);
 
 //Package car seat environment for UART(3 least significant bits)
 unsigned char package(unsigned char, unsigned char, unsigned char);

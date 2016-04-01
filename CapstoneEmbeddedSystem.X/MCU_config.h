@@ -41,9 +41,10 @@
 #define OUTPUT 0
 
 //Definitions for car inputs
+#define mainLoop while(1)
 #define weightBit PORTHbits.RH2   
 #define carPowerBit PORTFbits.RF4
-#define desiredTemp 65 
+#define desiredTemp 70 
 #define n 32
 
 //Definition for Explorer Board

@@ -11,33 +11,31 @@ void set_input_pins(){
     TRISFbits.TRISF4 = INPUT; //Input pin for car on or off(digital)
     TRISAbits.TRISA3 = INPUT; //Input pin for temp voltage(analog)
     TRISCbits.TRISC7 = INPUT; //Input from UART bluetooth receive
+    
 }
 
 //Output pins for sending data
 void set_output_pins(){
-    TRISCbits.TRISC6 = INPUT;//Output for UART bluetooth transmit
+    TRISCbits.TRISC6 = OUTPUT; //Output for UART bluetooth transmit
+    TRISAbits.TRISA4 = OUTPUT; //Bluetooth WAKE_SW
+    TRISAbits.TRISA5 = OUTPUT; //Bluetooth WAKE_HW
 }
+
 //Analog to Digital Converter Configuration
 void set_adc(){
     //Set ANCON Configuration bits
     WDTCONbits.ADSHR = 1; //Share address SFR for ANCON0 & ANCON1(p. 340)
     ANCON1 = 0xFF; //AN15-AN8 are all digital I/O (p. 311)
-    ANCON0 = 0xD7; //AN7:AN6, AN4, AN2-AN0 are digital, AN3 is analog(p.311)
-                   //RA3 = AN3 analog input for temperature voltage
+    
+    ANCON0 = 0xC7; //AN7:AN6, AN2-AN0 are digital, AN3 and AN4 is analog(p.311)
     
     //Set ADCON Configuration bits
     WDTCONbits.ADSHR = 0; //Share address SFR for ADCON0 & ADCON1(p. 340)
     ADCON0 = 0x0D; //ADCON0 = (0)(0)(0011)(0)(1) (p.309)
                    //(Vss)(Vdd)(CH3)(G0)(ADON)
+    
     ADCON1 = 0xBA; //ADCON1 = (1)(0)(111)(010) (p.310)
                    //(Right Just.)(ADCAL)(20TAD)(Fosc/32)
-}
-
-void set_interrupts(){
-    INTCONbits.GIE = 1;  //Enable all global interrupts
-    RCONbits.IPEN = 1;   //Enable Priority interrupt levels
-    PIE1bits.RCIE = 1;   //Enable USART Receive interrupt
-    IPR1bits.RCIP = 1;   //Enable USART Receive interrupt high-priority
 }
 
 //Helper function to set input/output/AtoD converter pins
@@ -81,6 +79,7 @@ void set_adc_ExplorerBoard(){
     //Set ANCON Configuration bits
     WDTCONbits.ADSHR = 1; //Share address SFR for ANCON0 & ANCON1(p. 340)
     ANCON1 = 0xFF; //AN15-AN8 are all digital I/O (p. 311)
+    
     ANCON0 = 0xDD; //AN7:AN6, AN4-AN2, AN0 are digital, AN1 is analog(p.311)
                    //RA1 = AN1 analog input for temperature voltage
     
@@ -88,6 +87,7 @@ void set_adc_ExplorerBoard(){
     WDTCONbits.ADSHR = 0; //Share address SFR for ADCON0 & ADCON1(p. 340)
     ADCON0 = 0x05; //ADCON0 = (0)(0)(0001)(0)(1) (p.309)
                    //(Vss)(Vdd)(CH1)(G0)(ADON)
-    ADCON1 = 0xBA; //ADCON1 = (1)(0)(111)(010) (p.310)
+    
+    ADCON1 = 0xA4; //ADCON1 = (1)(0)(100)(100) (p.310)
                    //(Right Just.)(ADCAL)(20TAD)(Fosc/32)
 }
