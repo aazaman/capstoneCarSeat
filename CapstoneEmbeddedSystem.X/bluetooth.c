@@ -1,36 +1,108 @@
+/*
+ 
+ * File:   bluetooth.c
+ * Author: Jose Hernandez and Jason Edie
+ * College: University of Arkansas
+ * Department: College of Engineering
+ *                  Computer Science
+ *                  Electrical Engineering
+ * Purpose: Senior Design
+ 
+ *This header file contains all the necessary methods to all the configuration of
+    the RN4020 Bluetooth Low Energy module as well as bonding the peer device
+    and enabling the MLDP mode for UART serial communication between the
+    PIC18f87J11 microcontroller and the peer device
+ 
+*/
+
 #include "MCU_config.h"
+#include "definitions.h"
 #include "bluetooth.h"
 #include "uart.h"
 #include "functions.h"
 
-volatile unsigned char string[n];
+extern volatile unsigned char ptr;            //buffer pointer
+extern volatile unsigned char string[n];      //buffer string
 
+//****************************************************************************//
+//Send commands through UART to configure RN4020
 void set_Bluetooth(){
     
-    unsigned char connected = false;
+    unsigned char reboot = 0; //if reboot needs to take place
+    unsigned char ready = 1;
     
-    WAKE_SW();                               //Bluetooth Command Mode
-    UART_transsmit((char *)"SB,1");          //Set Bluetooth Baud Rate
-    UART_transsmit((char *)"+");             //Set echo for testing
-    UART_transsmit((char *)"SF,1");          //Reset default factory settings
-    UART_transsmit((char *)"SS,00100000");   //Enable Support for Device
-    UART_transsmit((char *)"SR,28000000");   //Auto Advertise
-    UART_transsmit((char *)"R,1");           //Reboot to set changes
+    //Enter Command Mode
+    WAKE_SW();
+    delay(100);
+    clearStringBuffer();
     
-    //wait here until a connection is established
-    while(!connected){
-        UART_transsmit((char *)"Q");
-        connected = str_cmp((char *)string, (char *)"Not Connected");
-    }
+    do{
+        //Check to see if name is set to desired name
+        UART_transmit((char *)"GN\r"); //get name
+        delay(100);
+        if(!str_cmp((char *)string, (char *)"SmartSeat", 9)){
+            UART_transmit((char *)"SN,SmartSeat\r");  //Friendly Name
+            delay(100);
+            reboot = 1;
+        }
+        clearStringBuffer();
     
-    UART_transsmit((char *)"B,1");          //Bond the peer device
-    UART_transsmit((char *)"I");             //Enter MLPD mode
+        UART_transmit((char *)"GR\r");
+        delay(100);
+        if(!str_cmp((char *)string, (char *)"32004000\r", 8)){
+            UART_transmit((char *)"SR,32004000\r");   //Auto Advertise, Enable MLDP,
+            delay(100);
+            reboot = 1;
+        }
+        clearStringBuffer();
+    
+        if(reboot)
+            rebootBTLE();
+        
+        UART_transmit((char *)"GN\r");
+        delay(100);
+        if(!str_cmp((char *)string, (char *)"SmartSeat", 9))
+            ready = 0;
+        clearStringBuffer();
+        
+        UART_transmit((char *)"GR\r");
+        delay(100);
+        if(!str_cmp((char *)string, (char *)"32004000\r", 8))
+            ready = 0;
+        clearStringBuffer();
+        
+    }while(!ready);
 }
 
+//****************************************************************************//
+//Check connection status of the RN4020
+unsigned char checkBTLEConnection(){
+    
+    unsigned char connected = 0;
+    
+    UART_transmit((char *)"Q\r");
+    delay(100);
+    connected = !str_cmp((char *)string, (char *)"No Connection", 13);
+    clearStringBuffer();
+    return connected;
+}
+
+//****************************************************************************//
+//Enter MLDP mode for UART communication between MCU and peer device
+void enterBTLE_MLDP(){
+    UART_transmit((char *)"I\r");             //Bond the peer device
+    delay(100);
+    clearStringBuffer();
+}
+
+//****************************************************************************//
+//Reboot the RN4020 to save changes and exit MLDP
+void rebootBTLE(){
+    UART_transmit((char *)"R,1\r");           //Reboot to set changes
+    delay(100);
+    clearStringBuffer();
+}
+
+//****************************************************************************//
+//Enter command mode on the RN4020
 void WAKE_SW(){PORTAbits.RA4 = 1;}           //Set bluetooth to command mode
-
-void SLEEP_SW(){PORTAbits.RA4 = 0;}          //Set bluetooth to sleep mode
-
-void WAKE_HW(){PORTAbits.RA5 = 1;}           //Set bluetooth out of dorment
-
-void SLEEP_HW(){PORTAbits.RA5 = 0;}          //Set to dorment mode

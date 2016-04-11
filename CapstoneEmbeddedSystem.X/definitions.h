@@ -1,6 +1,6 @@
 /*
  
- * File:   interrupts.h
+ * File:   definitions.h
  * Author: Jose Hernandez and Jason Edie
  * College: University of Arkansas
  * Department: College of Engineering
@@ -8,16 +8,23 @@
  *                  Electrical Engineering
  * Purpose: Senior Design
  
- *This header file contains all the necessary methods for interrupts during
- * received data from the RN4020 BTLE module. These interrupts will execute when
- * the receive interrupt flag is set high
+ *This header file contains all the helpful definitions of data types for better
+ * understanding.
+ * 
  
 */
 
 //****************************************************************************//
-//Method to set interrupt bits for the PIC18F87J11
-void set_interrupts();
+//Logical Definitions
+#define true 1
+#define false 0
+#define INPUT 1
+#define OUTPUT 0
 
 //****************************************************************************//
-//Method for receive interrupt service routine 
-void interrupt ISR();
+//Definitions for car inputs
+#define mainLoop while(1)
+#define weightBit PORTHbits.RH2   
+#define carPowerBit PORTFbits.RF4
+#define desiredTemp 70 
+#define n 32
