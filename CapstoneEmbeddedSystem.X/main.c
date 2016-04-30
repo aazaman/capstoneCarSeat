@@ -30,90 +30,60 @@
 */
 
 //Include Header Files********************************************************//
-#include "definitions.h"      //Definitions
-#include "MCU_config.h"       //PIC18F87J11 configuration
-#include "interrupts.h"       //Interrupt configuration
-#include "atod_converter.h"   //Analog to Digital converter
-#include "uart.h"             //USART configuraton
-#include "bluetooth.h"        //Bluetooth configuration
-#include "carseat.h"          //Carseat functionality
-#include "functions.h"        //Standard methods
+#include "MCU_config.h"                  //PIC18F87J11 configuration
+#include "interrupts.h"                  //Interrupt configuration
+#include "atod_converter.h"              //Analog to Digital converter
+#include "uart.h"                        //USART configuraton
+#include "bluetooth.h"                   //Bluetooth configuration
+#include "carseat.h"                     //Carseat functionality
+#include "functions.h"                   //Utility functions
+#include "timers.h"                      //Timer functions
 
 //Interrupt Global Variables**************************************************//
-volatile unsigned char asciiValue = 0;  //Temporary hold character value
-volatile unsigned char ptr = 0;         //Pointer for string buffer
-volatile unsigned char string[n];       //String buffer, n -> MCUconfig.h
+volatile unsigned char asciiValue = 0;         //Temporary hold character value
+volatile unsigned char ptr = 0;                //Pointer for string buffer
+volatile unsigned char rxBuffer[rxBufferSize]; //String buffer to receive
+volatile unsigned char message[rxBufferSize];  //Hold BTLE message
 
-//main function***************************************************************//
+//Main function***************************************************************//
 void main(void) {
     
     //Initialization**********************************************************//
-    set_Fosc();                       //Set Oscillator frequency
-    set_pins();                       //Set pins
-    set_adc();                        //Set anaolg to digital converter
-    UART_init();                      //USART configuration
-    set_interrupts();                 //Set interrupts
-    set_Bluetooth();                  //Set Bluetooth configurations
+    clearStringBuffer();
+    set_Fosc();                          //Set Oscillator frequency
+    set_pins();                          //Set pins
+    ADC_set();                           //Set analog to digital converter
+    UART_init();                         //Set USART configuration
+    set_interrupts();                    //Set interrupts
+    set_timer0();                        //Set timer
+    BTLE_set();                          //Set Bluetooth configurations
     
-    while(true){
-        
-        unsigned char connected = false;
+    //Variables***************************************************************//
+    unsigned char weight      = 0;       //holds weight flag
+    unsigned char carPower    = 0;       //holds car power flag
+    short         temperature = 0;       //holds temperature value
+    unsigned char tempFlag    = 0;       //temperature flag
+    unsigned char bitmap      = 0;       //Bitmap for car seat environment
     
-        connected = checkBTLEConnection();
-        if(connected){       
-            
-            enterBTLE_MLDP(); //Enter MLDP mode to data stream UART between MCU and peer device
-            
-            //Variables***************************************************************//
-            unsigned char weight;    //holds if weight in seat
-            unsigned char car;       //holds if car is on or off
-            unsigned char temp;      //holds temperature 
-            unsigned char tempFlag;  //temperature flag
-            unsigned char message;   //bitmap of car seat environment
-            
-            
-            //Wait for peer response*****************************************//
-            while(!str_cmp((char *)string, (char *)"Active", 6));
-            clearStringBuffer(); 
-            
-            //Main Loop***************************************************************//
-            mainLoop{
-                
-                //Delay some time to insure response from peer device
-                delay(2000);
-                
-                //Insure that we are still connected
-                if(!str_cmp((char *)string, (char *)"Active", 6)){
-                    //If not connected, clear buffer and break out of main loop
-                    clearStringBuffer();
-                    break;
-                }
-                clearStringBuffer();            //clear buffer
-                
-                //SmartSeat data processing*******************************************//
-                weight = getWeightInSeat();    //check if there is weight in the seat
-        
-                car = getCarPower();           //check if car power is on
-        
-                temp = getTemperature();       //get temperature from environment
-        
-                tempFlag = checkTemp(temp);    //check if temperature is too high
-        
-                message = package(weight, car, tempFlag); //package bitmap
-        
-                TRISD = message;               //assign bitmap to port D
-        
-                //Start UART transmission*********************************************//
-                UART_transmit((char *) "Bitmap is: ");       //Send bitmap prefix
-                UART_transmitBitmap();                       //Send bitmap
-                UART_transmit((char *)"\r");                 //Send return character
-        
-                UART_transmit((char *) "Temperature is: ");  //Send temperature prefix
-                UART_transmit((char *) (char)temp);          //Send temperature 
-                UART_transmit((char *)"\r\r");               //Send 2 return characters
-            }
-            rebootBTLE();   //Get out of MLDP mode and enter CMD mode
-        }
+    //Connection Loop*********************************************************//
+    connectionLoop{
+        //Delay some time between each data stream
+        delay_sec(1);
+
+        //SmartSeat data processing*******************************************//
+        //check if there is weight in the seat
+        weight = getWeightInSeat();                  
+        //check if car power is on
+        carPower = getCarPower();                         
+        //get temperature from environment
+        temperature = getTemperature();                     
+        //check if temperature is too high
+        tempFlag = checkTemperature(temperature);                  
+        //package bitmap
+        bitmap = packageBitmap(weight, carPower, tempFlag);   
+
+        //send status of smart seat
+        UART_SmartSeatStatus(bitmap);       
     }
     return;
 }

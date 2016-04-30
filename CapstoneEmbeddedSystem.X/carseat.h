@@ -15,31 +15,25 @@
  * 3.) Get temperature
  
 */
+#include "MCU_config.h"
+#include "atod_converter.h"
 
 //****************************************************************************//
 //Function to determine if the child is in the seat
-//Returns 1 if child is in seated
 unsigned char getWeightInSeat();
 
-//****************************************************************************//
-//Function to determine if the car is on
-//Returns 0 if car is on
-//Returns 1 if car is off -> using battery
+//****************************************************************************//****************************************************************************//
+//Function to determine if the car power is on
 unsigned char getCarPower();
 
 //****************************************************************************//
 //Function to determine the temperature inside the car
-//Returns the temperature in decimal
-unsigned char getTemperature();
+short getTemperature();
 
 //****************************************************************************//
 //Function to determine is temperature is higher then desired
-unsigned char checkTemp(unsigned char);
-
-//****************************************************************************//
-//Function to observe movement of the car seat
-unsigned char accel();
+unsigned char checkTemperature(short);
 
 //****************************************************************************//
 //Package car seat environment for UART(3 least significant bits)
-unsigned char package(unsigned char, unsigned char, unsigned char);
+unsigned char packageBitmap(unsigned char, unsigned char, unsigned char);
