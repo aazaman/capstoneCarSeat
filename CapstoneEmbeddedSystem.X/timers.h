@@ -16,18 +16,24 @@
  * analog voltage from the thermistor and interpret its digital meaning.
  
 */
-
 #include "MCU_config.h"
 
 //****************************************************************************//
-//Function to set Analog & Digital pins
-//To set A/D configuration
-void ADC_set();
+//set internal timers using internal oscillator
+void set_timer0();
 
 //****************************************************************************//
-//get the temperature from the a to d converter
-short ADC_getTemperature();
+//delay for 1 millisecond
+void delay_1ms();
 
 //****************************************************************************//
-//Determine if the car power is on, this is set on analog pin so need to do ADC
-unsigned char ADC_getCarPower();
+//delay for 100 milliseconds
+void delay_100ms();
+
+//****************************************************************************//
+//delay for 1 second
+void delay_1s();
+
+//****************************************************************************//
+//delay for n seconds
+void delay_sec(unsigned char i);

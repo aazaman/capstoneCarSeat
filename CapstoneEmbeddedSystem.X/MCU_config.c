@@ -15,7 +15,6 @@
 */
 
 #include "MCU_config.h"
-#include "definitions.h"
 
 //****************************************************************************//
 //Sets the Oscillator frequency for the MCU
@@ -39,6 +38,8 @@ void set_output_pins(){
     TRISCbits.TRISC6 = OUTPUT; //Output for UART bluetooth transmit
     TRISAbits.TRISA4 = OUTPUT; //Bluetooth WAKE_SW
     TRISAbits.TRISA5 = OUTPUT; //Bluetooth WAKE_HW
+    TRISBbits.TRISB2 = OUTPUT;
+    TRISD            = OUTPUT;
 }
 
 //****************************************************************************//

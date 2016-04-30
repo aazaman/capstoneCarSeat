@@ -14,10 +14,8 @@
  
 */
 
-#include "MCU_config.h"
-#include "definitions.h"
+
 #include "interrupts.h"
-#include "uart.h"
 
 //****************************************************************************//
 //Method to set interrupt control register
@@ -31,18 +29,28 @@ void set_interrupts(){
 //****************************************************************************//
 //Method to be executed for any interrupt flag, mainly receive
 void interrupt ISR(){
-    extern volatile unsigned char asciiValue;
-    extern volatile unsigned char ptr;
-    extern volatile unsigned char string[n];
 
     //This interrupt is for USART communication
+    //Incoming Byte
     if(PIR1bits.RC1IF){
-        int i;
-        asciiValue = RCREG1;
-        if((asciiValue != 0x0A) && (ptr < n)){
-            string[ptr] = asciiValue;
-            ptr++;
+        asciiValue = RCREG1; //Temporary save Byte
+        
+        //Check if end of string and that pointer does not exceed length of receive buffer
+        //0x0A = "\n" and 0x0D = "\r"
+        if((asciiValue != 0x0A && asciiValue !=0x0D) && (ptr < rxBufferSize)){
+            if(asciiValue < 0x7F){
+                rxBuffer[ptr] = asciiValue;   //save byte to buffer
+                ptr++;  //increment pointer to save next byte
+            }
         }
-        PIR1bits.RCIF = 0;
+        
+        //We have reached end of string
+        else{
+            //copy buffer string to message string
+            str_copy((char *) rxBuffer, (char *) message, ptr);
+            clearStringBuffer();
+            ptr = 0;
+        }
+        PIR1bits.RCIF = 0;  //Ready for next byte 
     }
 }

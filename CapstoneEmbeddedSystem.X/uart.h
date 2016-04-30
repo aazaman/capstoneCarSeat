@@ -14,6 +14,9 @@
  * register and baud rate configuration register. 
  
 */
+#include "MCU_config.h"
+#include "functions.h"
+#include "timers.h"
 
 //****************************************************************************//
 //Initialize UART serial communication control registers
@@ -37,8 +40,12 @@ void set_UARTBaudRate();
 
 //****************************************************************************//
 //Transmit the bitmap on the UART transmitting port
-void UART_transmitBitmap();
+void UART_SmartSeatStatus(unsigned char);
+
+//****************************************************************************//
+//Transmit the temperature through the UART in ASCII
+void UART_Temperature(int);
 
 //****************************************************************************//
 //Transmit ASCII strings on the UART transmitting port
-void UART_transmit(unsigned char *s);
+void UART_transmit(unsigned char*);

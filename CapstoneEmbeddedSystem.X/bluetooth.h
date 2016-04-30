@@ -14,23 +14,22 @@
     PIC18f87J11 microcontroller and the peer device
  
 */
+#include "MCU_config.h"
+#include "functions.h"
+#include "timers.h"
+#include "uart.h"
+
+
+extern volatile unsigned char message[rxBufferSize];
 
 //****************************************************************************//
 //Initialize the RN4020
-void set_Bluetooth();
+void BTLE_set();
 
 //****************************************************************************//
-//Check bluetooth connection status
-unsigned char checkBTLEConnection();
-
-//****************************************************************************//
-//Enable MLDP mode for serial communication
-void enterBTLE_MLDP();
+//Check bluetooth connection status during CMD
+unsigned char BTLE_checkConnection();
 
 //****************************************************************************//
 //Reboot the bluetooth, saves setting and exit MLDP mode
-void rebootBTLE();
-
-//****************************************************************************//
-//Enter command mode
-void WAKE_SW();
+void BTLE_reboot();
