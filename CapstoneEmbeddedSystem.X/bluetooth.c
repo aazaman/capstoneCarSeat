@@ -15,94 +15,62 @@
  
 */
 
-#include "MCU_config.h"
-#include "definitions.h"
 #include "bluetooth.h"
-#include "uart.h"
-#include "functions.h"
-
-extern volatile unsigned char ptr;            //buffer pointer
-extern volatile unsigned char string[n];      //buffer string
 
 //****************************************************************************//
 //Send commands through UART to configure RN4020
-void set_Bluetooth(){
+void BTLE_set(){    
+    BTLE_Wake();                            //Wake bluetooth to accept commands
+    BTLE_enterCMD();                        //Enter command mode
     
-    unsigned char reboot = 0; //if reboot needs to take place
-    unsigned char ready = 1;
-    
-    //Enter Command Mode
-    WAKE_SW();
-    delay(100);
-    clearStringBuffer();
-    
-    do{
-        //Check to see if name is set to desired name
-        UART_transmit((char *)"GN\r"); //get name
-        delay(100);
-        if(!str_cmp((char *)string, (char *)"SmartSeat", 9)){
-            UART_transmit((char *)"SN,SmartSeat\r");  //Friendly Name
-            delay(100);
-            reboot = 1;
-        }
-        clearStringBuffer();
-    
-        UART_transmit((char *)"GR\r");
-        delay(100);
-        if(!str_cmp((char *)string, (char *)"32004000\r", 8)){
-            UART_transmit((char *)"SR,32004000\r");   //Auto Advertise, Enable MLDP,
-            delay(100);
-            reboot = 1;
-        }
-        clearStringBuffer();
-    
-        if(reboot)
-            rebootBTLE();
-        
-        UART_transmit((char *)"GN\r");
-        delay(100);
-        if(!str_cmp((char *)string, (char *)"SmartSeat", 9))
-            ready = 0;
-        clearStringBuffer();
-        
-        UART_transmit((char *)"GR\r");
-        delay(100);
-        if(!str_cmp((char *)string, (char *)"32004000\r", 8))
-            ready = 0;
-        clearStringBuffer();
-        
-    }while(!ready);
+    UART_transmit((char *)"SN,SmartSeat\r");//Set the name of the bluetooth
+    delay_100ms();                          //Give bluetooth time to respond
+
+    UART_transmit((char *)"SR,36004800\r"); //Set the settings for the bluetooth
+    delay_100ms();                          //Give bluetooth time to respond
+
+    BTLE_reboot();                          //Reboot bluetooth to save chnages
+
+    BTLE_enterMLDP();                       //Enter MLDP mode
 }
 
 //****************************************************************************//
 //Check connection status of the RN4020
-unsigned char checkBTLEConnection(){
-    
-    unsigned char connected = 0;
-    
+unsigned char BTLE_checkConnection(){
+    CMD_MLDP = 0;
+    delay_1s();
     UART_transmit((char *)"Q\r");
-    delay(100);
-    connected = !str_cmp((char *)string, (char *)"No Connection", 13);
-    clearStringBuffer();
-    return connected;
-}
-
-//****************************************************************************//
-//Enter MLDP mode for UART communication between MCU and peer device
-void enterBTLE_MLDP(){
-    UART_transmit((char *)"I\r");             //Bond the peer device
-    delay(100);
-    clearStringBuffer();
+    delay_1s();
+    if(!str_cmp((char *)message, (char *)"No Connection", 13)){
+        CMD_MLDP = 1;
+        delay_1s();
+        return 1;
+    }
+    return 0;
 }
 
 //****************************************************************************//
 //Reboot the RN4020 to save changes and exit MLDP
-void rebootBTLE(){
+void BTLE_reboot(){
     UART_transmit((char *)"R,1\r");           //Reboot to set changes
-    delay(100);
-    clearStringBuffer();
+    delay_1s();
+    BTLE_Wake();
 }
 
 //****************************************************************************//
-//Enter command mode on the RN4020
-void WAKE_SW(){PORTAbits.RA4 = 1;}           //Set bluetooth to command mode
+//Enter CMD (command) mode for RN4020
+void BTLE_enterCMD(){
+    CMD_MLDP = 0;
+}
+
+//****************************************************************************//
+//Enter MLDP mode for UART transmission between peer and MCU
+void BTLE_enterMLDP(){
+    CMD_MLDP = 1;
+}
+
+//****************************************************************************//
+//Wake the RN4020 bluetooth up
+void BTLE_Wake(){
+    WAKE_SW = 1;
+}

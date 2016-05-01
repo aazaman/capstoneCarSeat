@@ -15,17 +15,16 @@
  
 */
 
-#include "MCU_config.h"
 #include "uart.h"
 
 //****************************************************************************//
-//Method to initialize UART control registers for asynchruonus communication
+//Method to initialize UART control registers for asynchronus communication
 void UART_init(){
     
-    set_UARTtx();
-    set_UARTrx();
-    set_UARTBaudConfig();
-    set_UARTBaudRate();
+    set_UARTtx();         //Sets transmit control registers
+    set_UARTrx();         //Sets receive control registers
+    set_UARTBaudConfig(); //Sets baud rate control registers
+    set_UARTBaudRate();   //Set actual baud rate
 }
 
 //****************************************************************************//
@@ -42,12 +41,12 @@ void set_UARTtx(){
 //****************************************************************************//
 //Set receive control registers
 void set_UARTrx(){
-    RCSTA1bits.SPEN  = 1;  //Serial Port is enabled
-    RCSTA1bits.RX9   = 0;  //Receive 9 bits
-    RCSTA1bits.SREN  = 1;  //
-    RCSTA1bits.CREN  = 1;  //Continuous Receive Enabled
-    RCSTA1bits.ADDEN = 0;  //Address detection is disabled
-    SSP1CON2bits.RCEN = 1;
+    RCSTA1bits.SPEN   = 1;  //Serial Port is enabled
+    RCSTA1bits.RX9    = 0;  //Receive 9 bits
+    RCSTA1bits.SREN   = 1;  //Single receive enable bit
+    RCSTA1bits.CREN   = 1;  //Continuous Receive Enabled
+    RCSTA1bits.ADDEN  = 0;  //Address detection is disabled
+    SSP1CON2bits.RCEN = 1;  //Receive enable bit
 }
 
 //****************************************************************************//
@@ -63,42 +62,61 @@ void set_UARTBaudConfig(){
 //****************************************************************************//
 //Set Baud Rate 
 void set_UARTBaudRate(){
-    //Seconds per bit = 1/baudrate
-    //SPBRG value is only a number that references the baudrate
-    //115200 baudrate to talk to RN420 BTLE
-    SPBRGH1 = 0;
-    SPBRG1 = 16;
+    //Sets the baud rate to talk to RN4020
+    //baudrate = 115200
+    //Fosc = 8MHz
+    SPBRG1 = (char)((Fosc/(baudrate * baudrate_prescale)) - 1.0);
 }
 
 //****************************************************************************//
 //Function to transmit bitmap in ASCII on UART serial port
-void UART_transmitBitmap(){
+void UART_SmartSeatStatus(unsigned char bitmap, short temperature){
+    LATD = bitmap;
+    unsigned char s[6] = {83,48, 48, 48, 48, NULL};
+    if(weightBit) s[4] = 49;
+    if(carBit)    s[3] = 49;
+    if(temp1)     s[2] = 49;
+    if(temp2)     s[1] = 49;
     
-    while(TXSTAbits.TRMT == 0);
-    if(TRISDbits.RD2)
-        TXREG = 0x31;
-    else
-        TXREG = 0x30;
-    while(TXSTAbits.TRMT == 0);
-    if(TRISDbits.RD1)
-        TXREG = 0x31;
-    else
-        TXREG = 0x30;
-    while(TXSTAbits.TRMT == 0);
-    if(TRISDbits.RD0)
-        TXREG = 0x31;
-    else
-        TXREG = 0x30;
-    while(TXSTAbits.TRMT == 0);
+    UART_transmit((char *) s);
     
-    //TXREG = 0x0A;
-    while(TXSTAbits.TRMT == 0);
+    UART_transmit((char *) "\n");
+    
+    UART_Temperature(temperature);
+    
+    if(!temp1 && temp2)
+        UART_transmit((char *) "Hazard: High Temperatures\r");
+    else if(temp1 && ! temp2)
+        UART_transmit((char *) "Warning: Reaching unsafe high temperatures\r");
+    else
+        UART_transmit((char *) "Safe temperature\r");
+    if(carBit)
+        UART_transmit((char *) "Car Power\r");
+    else
+        UART_transmit((char *) "No Car Power\r");
+    if(weightBit)
+        UART_transmit((char *) "Child is in seat\r");
+    else
+        UART_transmit((char *) "No Child\r");
+    
+    UART_transmit((char *) "\n\n");
+}
+
+//Method to send temperature on UART as string
+void UART_Temperature(short t){
+    unsigned char s[rxBufferSize];
+    num_to_char((char *)s,t);
+    
+    UART_transmit((char *) "Temperature is: ");
+    UART_transmit((char *) s);
+    
 }
 
 //****************************************************************************//
 //Function to transmit string on UART serial port
 void UART_transmit(unsigned char *s){
     while(*s){
+        delay_100ms();
         while(TXSTAbits.TRMT == 0);
         TXREG = *s;
         s++;

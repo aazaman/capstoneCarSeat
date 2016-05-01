@@ -14,6 +14,15 @@
  
 */
 
+#include "MCU_config.h"
+#include "uart.h"
+#include "functions.h"
+
+extern volatile unsigned char asciiValue;
+extern volatile unsigned char ptr;
+extern volatile unsigned char rxBuffer[rxBufferSize];
+extern volatile unsigned char message[rxBufferSize];
+
 //****************************************************************************//
 //Method to set interrupt bits for the PIC18F87J11
 void set_interrupts();

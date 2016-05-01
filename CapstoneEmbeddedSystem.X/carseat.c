@@ -16,54 +16,57 @@
  
 */
 
-#include "MCU_config.h"
 #include "carseat.h"
-#include "definitions.h"
-#include "atod_converter.h"
 
 //****************************************************************************//
 //Function to determine if the child is in the seat
-//Returns 1 if child is seated
 unsigned char getWeightInSeat(){
-    //weighBit 0 = no voltage due to weight in seat
-    if(weightBit) return 0;
-    return 1;
+    //Return true if weight detected
+    //Return false if no weight detected
+    if(weightPin == 1)
+        return true;
+    return false;
 }
 
 //****************************************************************************//
-//Function to determine if the car is on
+//Function to determine if the car power is on
 unsigned char getCarPower(){
-    //Returns 1 if car is on
-    //Returns 0 if car is off -> using battery
-    if(carPowerBit) return 0;
-    return 1;
+    //Return true if car power is on
+    //Return false if car power is off -> backup battery being used
+    return ADC_getCarPower();
 }
 
 //****************************************************************************//
 //Function to determine the temperature inside the car
-//Returns the temperature in decimal
-unsigned char getTemperature(){
-    unsigned char temp;
-    temp = temp_adc();
-    return temp;
+short getTemperature(){
+    //Returns the temperature in decimal format
+    return ADC_getTemperature();
 }
 
 //****************************************************************************//
-unsigned char checkTemp(unsigned char t){
-    if(t >= desiredTemp)
-        return 1;
-    return 0;
+//Method to verify if the desired temperature is in range
+unsigned char checkTemperature(short t){
+    unsigned char c = 0;
+   
+    if(t >= WarningTemperature)
+        c = 1;
+    if(t >= HazardTemperature)
+        c = 2;
+    return c;
 }
 
 //****************************************************************************//
 //Function to package the environment of the car seat
-unsigned char package(unsigned char w, unsigned char c, unsigned char t){
-    //0b00000tcw
+unsigned char packageBitmap(unsigned char w, unsigned char c, unsigned char t){
+    unsigned char result;
+    //0b00000 t1t2cw
     //t = temperature above 80 degrees
     //c = car on or off
     //w = weight yes or no
     c = c<<1;
     t = t<<2;
+    
+    result = t | c | w;
    
-    return t | c | w;
+    return result;
 }

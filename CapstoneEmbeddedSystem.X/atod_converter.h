@@ -17,11 +17,17 @@
  
 */
 
+#include "MCU_config.h"
+
 //****************************************************************************//
 //Function to set Analog & Digital pins
 //To set A/D configuration
-void set_adc();
+void ADC_set();
 
 //****************************************************************************//
 //get the temperature from the a to d converter
-unsigned char temp_adc();
+short ADC_getTemperature();
+
+//****************************************************************************//
+//Determine if the car power is on, this is set on analog pin so need to do ADC
+unsigned char ADC_getCarPower();
